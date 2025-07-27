@@ -1,0 +1,382 @@
+<template>
+  <div class="constar">
+    <div class="header">
+      <div class="logo">
+        <img src="@/assets/image/logo.png" alt="" />
+        <span>中国汛情动态预警监测综合服务平台</span>
+      </div>
+      <div class="logo-r">
+        <div class="logo-t">
+          <img src="@/assets/image/noda.png" alt="" />
+        </div>
+      </div>
+    </div>
+
+    <!-- li -->
+    <div class="nav">
+      <ul>
+        <li>首页 <span>>></span></li>
+        <li>汛情动态 <span>>></span></li>
+        <li>灾害案例</li>
+      </ul>
+    </div>
+
+    <!-- main -->
+    <div class="mapBox">
+      <div class="map">
+        <div class="mapView">
+          <MapContainer />
+        </div>
+      </div>
+
+      <!-- 展示数据 -->
+      <div class="mapdata">
+        <div class="title">
+          <h3>洪涝信息</h3>
+        </div>
+        <!-- 搜索区域 -->
+        <div class="form">
+          <el-form :inline="true" :model="formData" class="demo-form-inline">
+            <el-form-item label="区间搜索:">
+              <el-date-picker v-model="getTime" format="YYYY-MM-DD" value-format="YYYY-MM-DD" type="daterange"
+                unlink-panels range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" @change="handle"
+                class="picker" />
+            </el-form-item>
+
+            <el-form-item label="等级:">
+              <el-select v-model="formData.ranks" placeholder="请选择" class="select">
+                <el-option :label="item.label" :value="item.value" v-for="item in options" :key="item.value" />
+              </el-select>
+            </el-form-item>
+
+            <el-form-item label="搜索内容:">
+              <el-input placeholder="请输入搜索内容" v-model="formData.content" clearable class="inp-w" />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="selectBtn" class="btn">查询数据</el-button>
+              <el-button type="primary" class="btn">导出数据</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
+        <div class="tableView">
+          <el-table :data="tableData" :default-sort="{ prop: 'date', order: 'descending' }" style="width:10.7125rem; height: 6.25rem;font-size: .175rem;" border
+            show-overflow-tooltip>
+            <el-table-column prop="datetime" label="时间" sortable width="159" align="center"
+              style="height: 0.5375rem !important" />
+            <el-table-column prop="rank" label="等级" sortable width="99" align="center" v-slot="scope">
+             <span> {{ scope.row.rank }}</span>
+             <!-- <span  v-if="scope.row.rank=='红色预警'" class="color2"> {{ scope.row.rank }}</span> -->
+             <!-- <span  :class="scope.row.rank=='黄色预警'? 'color3' : ''"> {{ scope.row.rank }}</span>
+             <span  :class="scope.row.rank=='蓝色预警'? 'color4' : ''"> {{ scope.row.rank }}</span> -->
+            </el-table-column>
+            <el-table-column prop="scope" label="影响范围" width="451" align="center" />
+            <el-table-column prop="poi" label="发布单位" width="120" align="center" />
+          </el-table>
+          <div class="pagina">
+            <el-pagination background layout="prev, pager, next ,total" :total="total" class="mt-4" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <p>版权所有：国家对地观测科学数据中心</p>
+      <p>技术支持： 山东科技大学</p>
+      <p>电话：010-82177657 邮箱：noda_office@aircas.ac.cn</p>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import MapContainer from '@/components/GaoDeMap.vue'
+import { getData, getTableData, selectData } from "@/api/map";
+import { onMounted, reactive, ref } from "vue";
+
+const getTime = ref();
+const formData = reactive({
+  content: "",
+  ranks: "",
+  pageSize: 1000,
+  pageNum: 1,
+  startTime: "",
+  endTime: "",
+});
+const options = [
+  {
+    label: "一级预警",
+    value: "红色预警",
+    bgc:{
+      color:'red'
+    }
+  },
+  {
+    label: "二级预警",
+    value: "橙色预警",
+    bgc:{
+      color:'orange'
+    }
+  },
+  {
+    label: "三级预警",
+    value: "黄色预警",
+    bgc:{
+      color:'yellow'
+    }
+  },
+  {
+    label: "四级预警",
+    value: "蓝色预警",
+    bgc:{
+      color:'blue'
+    }
+  },
+];
+const tableData = ref([]);
+const total = ref(null);
+
+onMounted(() => {
+  getTable();
+  getData({
+    pageNum: 1,
+    pageSize: 1000,
+  })
+    .then((res) => { console.log(res);
+    })
+    .catch((error) => { console.log(error)});
+});
+// 获取时间
+const handle = (dataTime) => {
+  dataTime.forEach((item) => {
+    console.log(item[0]);
+    formData.startTime = item[0];
+    formData.endTime = item[1];
+  });
+};
+const selectBtn = () => {
+  // console.log(getTime.value);
+  // getTime.value.forEach(item => {
+  //   console.log(item);
+  //   formData.startTime=item[0]
+  //   formData.endTime=item[1]
+  // });
+  selectData(formData).then((res) => {
+    tableData.value = res.data.data;
+    total.value = res.data.data.length;
+  });
+};
+
+const getTable = () => {
+  getTableData({
+    dateTime: "2025-07-26",
+  }).then((res) => {
+    tableData.value = res.data.data;
+    total.value = res.data.data.length;
+  });
+};
+</script>
+
+<style lang="scss" scoped>
+.color1{
+  color: red;
+}
+.color2{
+  color: orange;
+}
+.color3{
+  color:yellow;
+}
+.color4{
+  color:blue;
+}
+.footer{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items:center;
+  height: .75rem;
+  margin-top: .125rem;
+  p{
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: .175rem;
+  }
+}
+.pagina {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0.25rem 0;
+}
+
+.tableView {
+  width: 100%;
+  height: 6.975rem;
+  overflow: hidden;
+  scroll-behavior: auto;
+}
+
+.demo-form-inline {
+  // padding: 0.25rem 0;
+}
+
+.btn {
+  width: 1.7rem;
+  height: 0.5rem;
+}
+
+.btn:nth-child(2) {
+  margin-right: 0px;
+}
+
+.inp-w {
+  width: 5.125rem !important;
+  height: 0.4375rem;
+}
+
+.select {
+  width: 2.975rem !important;
+  height: 0.4375rem;
+}
+
+.nav {
+  height: 0.4375rem;
+  padding: 0 0 0 0.375rem;
+  line-height: .5rem;
+
+  ul {
+    display: flex;
+
+    li {
+      cursor: pointer;
+      color: #3c3e50;
+      font-size: .2rem;
+      font-family: Fira Sans, sans-serif;
+
+      // color: #00f;
+      &:hover {
+        font-weight: 700;
+        color: #00f;
+      }
+
+      &:active {
+        font-weight: 700;
+        color: #00f;
+      }
+    }
+  }
+}
+
+.mapBox {
+  padding: 0 0.25rem;
+  display: flex;
+  margin-top: .0625rem;
+
+  .map {
+    flex: 1.155;
+    height:9.2375rem;
+    background: #fff;
+    padding: .125rem;
+
+    .mapView {
+      // width: 12.3625rem;
+      height: 8.5875rem;
+      // background: red;
+    }
+  }
+
+  .mapdata {
+    flex: 1;
+    padding: 0 0 0 0.25rem;
+
+    .title {
+      height: 1rem;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      margin-top: -0.1375rem;
+      padding-left: 0.125rem;
+      z-index: 10;
+
+      h3 {
+        width: 1.2rem;
+        height: 0.5rem;
+        background: #e1251b;
+        color: #fff;
+        font-size: 0.175rem;
+        font-weight: 700;
+        // padding: 0 .25rem;
+        text-align: center;
+        line-height: 0.5rem;
+      }
+    }
+
+    // background: green;
+  }
+}
+
+.logo {
+  width: 16.8rem;
+  height: 0.5rem;
+  padding: 0 0 0 0.25rem;
+  display: flex;
+  // justify-content: center;
+  align-items: center;
+
+  img {
+    width: 0.4838rem;
+    height: 0.375rem;
+    line-height: 0.5rem;
+    margin: 0.0625rem 0.125rem;
+  }
+
+  span {
+    color: #ffffff;
+    line-height: 0.5rem;
+    font-weight: bolder;
+    letter-spacing: 2px;
+    font-size: 0.225rem;
+  }
+}
+
+.logo-r {
+  width: 6.95rem;
+  height: 0.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.logo-t {
+  width: 4.1875rem;
+  height: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: .125rem;
+
+  img {
+    width: 4.0625rem;
+    height: 0.325rem;
+    padding-top: 0.025rem;
+  }
+}
+
+.header {
+  height: 0.5rem;
+  background-color: #deb887;
+  display: flex;
+}
+
+.constar {
+  width: 100%;
+  height: 100%;
+}
+</style>
+<style>
+.el-card__body {
+  padding: .25rem 0;
+}
+
+.el-range-editor.el-input__wrapper {
+  width: 4.8875rem !important;
+  height: 0.4375rem;
+}
+</style>
