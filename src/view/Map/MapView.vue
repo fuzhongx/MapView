@@ -15,7 +15,7 @@
     <!-- li -->
     <div class="nav">
       <ul>
-        <li>首页 <span>>></span></li>
+        <li @click="handleHome">首页 <span>>></span></li>
         <li>汛情动态 <span>>></span></li>
         <li>灾害案例</li>
       </ul>
@@ -44,7 +44,7 @@
             </el-form-item>
 
             <el-form-item label="等级:">
-              <el-select v-model="formData.ranks" placeholder="请选择" class="select">
+              <el-select v-model="formData.ranks" placeholder="请选择" class="select" clearable>
                 <el-option :label="item.label" :value="item.value" v-for="item in options" :key="item.value" />
               </el-select>
             </el-form-item>
@@ -54,7 +54,7 @@
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="selectBtn" class="btn">查询数据</el-button>
-              <el-button type="primary" class="btn">导出数据</el-button>
+              <el-button type="primary" class="btn" @click="handleDaoChu">导出数据</el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -63,17 +63,24 @@
             show-overflow-tooltip>
             <el-table-column prop="datetime" label="时间" sortable width="159" align="center"
               style="height: 0.5375rem !important" />
-            <el-table-column prop="rank" label="等级" sortable width="99" align="center" v-slot="scope">
-             <span> {{ scope.row.rank }}</span>
-             <!-- <span  v-if="scope.row.rank=='红色预警'" class="color2"> {{ scope.row.rank }}</span> -->
-             <!-- <span  :class="scope.row.rank=='黄色预警'? 'color3' : ''"> {{ scope.row.rank }}</span>
-             <span  :class="scope.row.rank=='蓝色预警'? 'color4' : ''"> {{ scope.row.rank }}</span> -->
+            <el-table-column prop="rank" label="等级"  sortable width="99" align="center" v-slot="scope">
+             <span v-if="scope.row.rank=='红色预警'" class="bg1"> {{ scope.row.rank }}</span>
+             <span v-else-if="scope.row.rank=='橙色预警'" class="bg2"> {{ scope.row.rank }}</span>
+             <span v-else-if="scope.row.rank=='黄色预警'" class="bg3"> {{ scope.row.rank }}</span>
+             <span v-if="scope.row.rank=='蓝色预警'" class="bg4"> {{ scope.row.rank }}</span>
+
             </el-table-column>
             <el-table-column prop="scope" label="影响范围" width="451" align="center" />
             <el-table-column prop="poi" label="发布单位" width="120" align="center" />
           </el-table>
           <div class="pagina">
-            <el-pagination background layout="prev, pager, next ,total" :total="total" class="mt-4" />
+            <el-pagination background layout=" prev, pager, next,total" :total="total" class="mt-4" 
+               :page-sizes="[100, 200, 300, 400]"
+               v-model:current-page="currentPage"
+              v-model:page-size="pageSize"
+               @size-change="handleSizeChange"
+               @current-change="handleCurrentChange"
+            />
           </div>
         </div>
       </div>
@@ -89,17 +96,27 @@
 <script setup>
 import MapContainer from '@/components/GaoDeMap.vue'
 import { getData, getTableData, selectData } from "@/api/map";
+
+import XLSX from '@/uilt/export'
+import { dateTime } from '@/uilt/dateTime';
+import { useRouter } from 'vue-router';
+
 import { onMounted, reactive, ref } from "vue";
+const router=useRouter()
 
 const getTime = ref();
 const formData = reactive({
   content: "",
   ranks: "",
-  pageSize: 1000,
+  pageSize:10,
   pageNum: 1,
   startTime: "",
   endTime: "",
 });
+
+const currentPage = ref(null)
+const pageSize = ref(null)
+
 const options = [
   {
     label: "一级预警",
@@ -131,7 +148,7 @@ const options = [
   },
 ];
 const tableData = ref([]);
-const total = ref(null);
+const total = ref(0);
 
 onMounted(() => {
   getTable();
@@ -143,26 +160,44 @@ onMounted(() => {
     })
     .catch((error) => { console.log(error)});
 });
+
+// 首页
+const handleHome=()=>{
+  router.push('/floodData')
+}
 // 获取时间
 const handle = (dataTime) => {
-  dataTime.forEach((item) => {
-    console.log(item[0]);
-    formData.startTime = item[0];
-    formData.endTime = item[1];
-  });
+  formData.startTime=dataTime[0]
+  formData.endTime=dataTime[1]
 };
+
+//分页
+const handleSizeChange = (val) => {
+  pageSize.value=val
+  formData.pageSize=val
+  selectBtn()
+
+}
+const handleCurrentChange = (val) => {
+  currentPage.value=val
+  formData.pageNum=val
+  selectBtn()
+}
+
+// 查询
 const selectBtn = () => {
-  // console.log(getTime.value);
-  // getTime.value.forEach(item => {
-  //   console.log(item);
-  //   formData.startTime=item[0]
-  //   formData.endTime=item[1]
-  // });
   selectData(formData).then((res) => {
-    tableData.value = res.data.data;
-    total.value = res.data.data.length;
+    console.log(res.data.rows,'测试');
+    
+    tableData.value = res.data.rows;
+    total.value = res.data.total;
   });
 };
+
+// 导出
+const handleDaoChu=()=>{
+  XLSX(tableData.value)
+}
 
 const getTable = () => {
   getTableData({
@@ -172,20 +207,31 @@ const getTable = () => {
     total.value = res.data.data.length;
   });
 };
+
 </script>
 
 <style lang="scss" scoped>
-.color1{
-  color: red;
+.bg1,.bg2,.bg3,.bg4{
+  display: block;
+  width: .95rem;
+  height: .325rem;
+  border-radius: .125rem;
 }
-.color2{
-  color: orange;
+.bg1{
+  background: red;
+  color: #fcfcfc;
 }
-.color3{
-  color:yellow;
+.bg2{
+  background: orange;
+  color: #fff;
 }
-.color4{
-  color:blue;
+.bg3{
+  background: yellow;
+  color: #858282;
+}
+.bg4{
+  background: blue;
+  color: #fff;
 }
 .footer{
   display: flex;

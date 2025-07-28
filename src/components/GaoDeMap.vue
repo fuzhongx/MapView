@@ -17,12 +17,12 @@ onMounted(() => {
         version: "2.0", //指定要加载的 JS API 的版本，缺省时默认为 1.4.15
         plugins: ["AMap.Scale", "AMap.ToolBar", "AMap.ControlBar", "AMap.HawkEye"],//需要使用的的插件列表
     }).then((AMap) => {
-        const layer = new AMap.createDefaultLayer({
-            zooms: [3, 20], //可见级别
-            visible: true, //是否可见
-            opacity: 1, //透明度
-            zIndex: 0, //叠加层级
-        });
+        // const layer = new AMap.createDefaultLayer({
+        //     zooms: [3, 20], //可见级别
+        //     visible: true, //是否可见
+        //     opacity: 1, //透明度
+        //     zIndex: 0, //叠加层级
+        // });
 
         map = new AMap.Map("container", {
             // 设置地图容器id
