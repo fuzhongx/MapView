@@ -1,8 +1,14 @@
 <template>
-    <router-view></router-view>
+    <router-view  :locale="locale"></router-view>
 </template>
 
-<script>
+<script setup>
+import {ref,computed } from 'vue'
+import en from 'element-plus/dist/locale/en.mjs'
+import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
+
+const lange=ref(zhCn)
+const locale = computed(() => ( lange.value.name === 'zh-cn' ? zhCn : en))
 </script>
 
 <style>

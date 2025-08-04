@@ -59,8 +59,11 @@
           </el-form>
         </div>
         <div class="tableView">
-          <el-table :data="tableData" :default-sort="{ prop: 'date', order: 'descending' }" style="width:10.7125rem; height: 6.25rem;font-size: .175rem;" border
-            show-overflow-tooltip>
+          <el-table :data="tableData" :default-sort="{ prop: 'date', order: 'descending' }" style="width:10.7125rem; height: 5.8625rem;font-size: .175rem;" border
+            show-overflow-tooltip
+            @row-click="getRowData"
+            
+            >
             <el-table-column prop="datetime" label="时间" sortable width="159" align="center"
               style="height: 0.5375rem !important" />
             <el-table-column prop="rank" label="等级"  sortable width="99" align="center" v-slot="scope">
@@ -75,6 +78,7 @@
           </el-table>
           <div class="pagina">
             <el-pagination background layout=" prev, pager, next,total" :total="total" class="mt-4" 
+            
                :page-sizes="[100, 200, 300, 400]"
                v-model:current-page="currentPage"
               v-model:page-size="pageSize"
@@ -98,7 +102,7 @@ import MapContainer from '@/components/GaoDeMap.vue'
 import { getData, getTableData, selectData } from "@/api/map";
 
 import XLSX from '@/uilt/export'
-import { dateTime } from '@/uilt/dateTime';
+// import { dateTime } from '@/uilt/dateTime';
 import { useRouter } from 'vue-router';
 
 import { onMounted, reactive, ref } from "vue";
@@ -113,6 +117,8 @@ const formData = reactive({
   startTime: "",
   endTime: "",
 });
+
+
 
 const currentPage = ref(null)
 const pageSize = ref(null)
@@ -165,11 +171,20 @@ onMounted(() => {
 const handleHome=()=>{
   router.push('/floodData')
 }
+
 // 获取时间
 const handle = (dataTime) => {
   formData.startTime=dataTime[0]
   formData.endTime=dataTime[1]
 };
+// 获取表格某行数据
+const getRowData=(row, column, event)=>{
+  console.log(row);
+  console.log(column);
+  console.log(event);
+  
+
+}
 
 //分页
 const handleSizeChange = (val) => {
@@ -203,14 +218,22 @@ const getTable = () => {
   getTableData({
     dateTime: "2025-07-26",
   }).then((res) => {
+  
     tableData.value = res.data.data;
     total.value = res.data.data.length;
+  }).catch(error=>{
+    console.log(error,'hahah');
+    if(error.status==302){
+      // const Url=error.headers.get('Location')
+      window.location.href= 'https://noda.ac.cn/login '
+    }
   });
 };
 
 </script>
 
 <style lang="scss" scoped>
+
 .bg1,.bg2,.bg3,.bg4{
   display: block;
   width: .95rem;
@@ -261,12 +284,14 @@ const getTable = () => {
 }
 
 .demo-form-inline {
-  // padding: 0.25rem 0;
+ height: 1.375rem;
+ padding: .25rem 0 0 0;
 }
 
 .btn {
   width: 1.7rem;
   height: 0.5rem;
+  font-size: .175rem;
 }
 
 .btn:nth-child(2) {
@@ -424,5 +449,31 @@ const getTable = () => {
 .el-range-editor.el-input__wrapper {
   width: 4.8875rem !important;
   height: 0.4375rem;
+}
+</style>
+<style scoped>
+::v-deep .el-form-item--label-right .el-form-item__label{
+  font-size: .175rem !important;
+}
+::v-deep .el-date-editor .el-range-input{
+  font-size: .15rem;
+}
+::v-deep .el-date-editor .el-range-separator{
+  font-size: .15rem;
+}
+::v-deep .el-date-editor .el-range__icon svg{
+  font-size: .15rem;
+}
+::v-deep .el-select__wrapper{
+  height:.4375rem;
+  font-size: .15rem;
+}
+::v-deep .el-input__inner{
+  font-size: .15rem;
+}
+::v-deep .el-form--inline .el-form-item {
+    display: inline-flex;
+    margin-right: .4rem;
+    vertical-align: middle;
 }
 </style>
