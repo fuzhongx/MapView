@@ -37,7 +37,7 @@
             </ul>
           </div>
           <div class="date-box2">
-            <div style="margin-top: 10px;" v-for="item in dateTime" :key="item">{{ item }}</div>
+            <div v-for="item in dateTime" :key="item">{{ item }}</div>
           </div>
         </div>
       </div>
@@ -96,7 +96,6 @@
       </div>
     </div>
     <div class="footer">
-      {{ dateTime }}
       <p>版权所有：国家对地观测科学数据中心</p>
       <p>技术支持： 山东科技大学</p>
       <p>电话：010-82177657 邮箱：noda_office@aircas.ac.cn</p>
@@ -250,13 +249,15 @@ const getTable = () => {
 <style lang="scss" scoped>
 .dateNav {
   width: 100%;
+  height: .3375rem;
   .date-box2{
+
     width: 87%;
-    // height: 30px;
+    height: .25rem;
     margin: 0 auto;
-    background: red;
     display: flex;
     justify-content: space-evenly;
+    align-items: center;
   }
   .date-box {
     width: 90%;
