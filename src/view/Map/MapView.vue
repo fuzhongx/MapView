@@ -27,6 +27,19 @@
         <div class="mapView">
           <MapContainer />
         </div>
+        <!-- date nav -->
+        <div class="dateNav">
+          <div class="date-box">
+            <ul>
+              <li class="oricle" ref="oricleRef" v-for="item in dateTime.length" :key="item">
+
+              </li>
+            </ul>
+          </div>
+          <div class="date-box2">
+            <div style="margin-top: 10px;" v-for="item in dateTime" :key="item">{{ item }}</div>
+          </div>
+        </div>
       </div>
 
       <!-- 展示数据 -->
@@ -59,37 +72,31 @@
           </el-form>
         </div>
         <div class="tableView">
-          <el-table :data="tableData" :default-sort="{ prop: 'date', order: 'descending' }" style="width:10.7125rem; height: 5.8625rem;font-size: .175rem;" border
-            show-overflow-tooltip
-            @row-click="getRowData"
-            
-            >
+          <el-table :data="tableData" :default-sort="{ prop: 'date', order: 'descending' }"
+            style="width:10.7125rem; height: 5.8625rem;font-size: .175rem;" border show-overflow-tooltip
+            @row-click="getRowData">
             <el-table-column prop="datetime" label="时间" sortable width="159" align="center"
               style="height: 0.5375rem !important" />
-            <el-table-column prop="rank" label="等级"  sortable width="99" align="center" v-slot="scope">
-             <span v-if="scope.row.rank=='红色预警'" class="bg1"> {{ scope.row.rank }}</span>
-             <span v-else-if="scope.row.rank=='橙色预警'" class="bg2"> {{ scope.row.rank }}</span>
-             <span v-else-if="scope.row.rank=='黄色预警'" class="bg3"> {{ scope.row.rank }}</span>
-             <span v-if="scope.row.rank=='蓝色预警'" class="bg4"> {{ scope.row.rank }}</span>
+            <el-table-column prop="rank" label="等级" sortable width="99" align="center" v-slot="scope">
+              <span v-if="scope.row.rank == '红色预警'" class="bg1"> {{ scope.row.rank }}</span>
+              <span v-else-if="scope.row.rank == '橙色预警'" class="bg2"> {{ scope.row.rank }}</span>
+              <span v-else-if="scope.row.rank == '黄色预警'" class="bg3"> {{ scope.row.rank }}</span>
+              <span v-if="scope.row.rank == '蓝色预警'" class="bg4"> {{ scope.row.rank }}</span>
 
             </el-table-column>
             <el-table-column prop="scope" label="影响范围" width="451" align="center" />
             <el-table-column prop="poi" label="发布单位" width="120" align="center" />
           </el-table>
           <div class="pagina">
-            <el-pagination background layout=" prev, pager, next,total" :total="total" class="mt-4" 
-            
-               :page-sizes="[100, 200, 300, 400]"
-               v-model:current-page="currentPage"
-              v-model:page-size="pageSize"
-               @size-change="handleSizeChange"
-               @current-change="handleCurrentChange"
-            />
+            <el-pagination background layout=" prev, pager, next,total" :total="total" class="mt-4"
+              :page-sizes="[100, 200, 300, 400]" v-model:current-page="currentPage" v-model:page-size="pageSize"
+              @size-change="handleSizeChange" @current-change="handleCurrentChange" />
           </div>
         </div>
       </div>
     </div>
     <div class="footer">
+      {{ dateTime }}
       <p>版权所有：国家对地观测科学数据中心</p>
       <p>技术支持： 山东科技大学</p>
       <p>电话：010-82177657 邮箱：noda_office@aircas.ac.cn</p>
@@ -100,19 +107,20 @@
 <script setup>
 import MapContainer from '@/components/GaoDeMap.vue'
 import { getData, getTableData, selectData } from "@/api/map";
+import bus from '@/uilt/bus'
 
 import XLSX from '@/uilt/export'
-// import { dateTime } from '@/uilt/dateTime';
+import dateTime from '@/uilt/dateTime';
 import { useRouter } from 'vue-router';
 
 import { onMounted, reactive, ref } from "vue";
-const router=useRouter()
 
+const router = useRouter()
 const getTime = ref();
 const formData = reactive({
   content: "",
   ranks: "",
-  pageSize:10,
+  pageSize: 10,
   pageNum: 1,
   startTime: "",
   endTime: "",
@@ -127,29 +135,29 @@ const options = [
   {
     label: "一级预警",
     value: "红色预警",
-    bgc:{
-      color:'red'
+    bgc: {
+      color: 'red'
     }
   },
   {
     label: "二级预警",
     value: "橙色预警",
-    bgc:{
-      color:'orange'
+    bgc: {
+      color: 'orange'
     }
   },
   {
     label: "三级预警",
     value: "黄色预警",
-    bgc:{
-      color:'yellow'
+    bgc: {
+      color: 'yellow'
     }
   },
   {
     label: "四级预警",
     value: "蓝色预警",
-    bgc:{
-      color:'blue'
+    bgc: {
+      color: 'blue'
     }
   },
 ];
@@ -162,55 +170,62 @@ onMounted(() => {
     pageNum: 1,
     pageSize: 1000,
   })
-    .then((res) => { console.log(res);
+    .then((res) => {
+      console.log(res);
     })
-    .catch((error) => { console.log(error)});
+    .catch((error) => { console.log(error) });
 });
 
+//获取下列时间
+const oricleRef = ref(null)
+
+// oricleRef.value.style.background='#ededde'
+// console.log(oricleRef.value.style.background='red');
+
+
+
 // 首页
-const handleHome=()=>{
+const handleHome = () => {
   router.push('/floodData')
 }
 
 // 获取时间
 const handle = (dataTime) => {
-  formData.startTime=dataTime[0]
-  formData.endTime=dataTime[1]
+  formData.startTime = dataTime[0]
+  formData.endTime = dataTime[1]
 };
 // 获取表格某行数据
-const getRowData=(row, column, event)=>{
+const getRowData = (row) => {
+  bus.emit('code', row.adcode)
+  bus.emit('color', row.rank)
   console.log(row);
-  console.log(column);
-  console.log(event);
-  
+
 
 }
 
 //分页
 const handleSizeChange = (val) => {
-  pageSize.value=val
-  formData.pageSize=val
+  pageSize.value = val
+  formData.pageSize = val
   selectBtn()
 
 }
 const handleCurrentChange = (val) => {
-  currentPage.value=val
-  formData.pageNum=val
+  currentPage.value = val
+  formData.pageNum = val
   selectBtn()
 }
 
 // 查询
 const selectBtn = () => {
   selectData(formData).then((res) => {
-    console.log(res.data.rows,'测试');
-    
     tableData.value = res.data.rows;
     total.value = res.data.total;
   });
 };
 
 // 导出
-const handleDaoChu=()=>{
+const handleDaoChu = () => {
   XLSX(tableData.value)
 }
 
@@ -218,14 +233,14 @@ const getTable = () => {
   getTableData({
     dateTime: "2025-07-26",
   }).then((res) => {
-  
+
     tableData.value = res.data.data;
     total.value = res.data.data.length;
-  }).catch(error=>{
-    console.log(error,'hahah');
-    if(error.status==302){
+  }).catch(error => {
+    console.log(error, 'hahah');
+    if (error.status == 302) {
       // const Url=error.headers.get('Location')
-      window.location.href= 'https://noda.ac.cn/login '
+      window.location.href = 'https://noda.ac.cn/login '
     }
   });
 };
@@ -233,42 +248,120 @@ const getTable = () => {
 </script>
 
 <style lang="scss" scoped>
+.dateNav {
+  width: 100%;
+  .date-box2{
+    width: 87%;
+    // height: 30px;
+    margin: 0 auto;
+    background: red;
+    display: flex;
+    justify-content: space-evenly;
+  }
+  .date-box {
+    width: 90%;
+    margin: 0 auto;
+    // background: green;
+    ul {
+      display: flex;
+      justify-content: space-evenly;
 
-.bg1,.bg2,.bg3,.bg4{
+      li {
+        position: relative;
+        width: .1875rem;
+        height: .1875rem;
+        border-radius: 50%;
+        border: 1px solid #dcdfe6;
+        background: #fff;
+        z-index: 33;
+
+        &::before {
+          position: absolute;
+          display: block;
+          content: '';
+          top: 7px;
+          right: 15px;
+          width: 44px;
+          height: 1px;
+          background: #dcdfe6;
+          z-index: 1;
+        }
+
+        &::after {
+          position: absolute;
+          display: block;
+          content: '';
+          top: 7px;
+          left: 15px;
+          width: 48px;
+          height: 1px;
+          background: #dcdfe6;
+          z-index: 1;
+        }
+      }
+
+      // li::before{
+      //   display: block;
+      //   content: '';
+      //   position: absolute;
+      //   top: 0px;
+      //   left: 0;
+      //   width: 60px;
+      //   height: 1px;
+      //   background: #fff;
+      //   border: 100px solid #858282;
+      // }
+
+    }
+
+  }
+}
+
+.bg1,
+.bg2,
+.bg3,
+.bg4 {
   display: block;
   width: .95rem;
   height: .325rem;
   border-radius: .125rem;
 }
-.bg1{
+
+.bg1 {
   background: red;
   color: #fcfcfc;
 }
-.bg2{
+
+.bg2 {
   background: orange;
   color: #fff;
 }
-.bg3{
+
+.bg3 {
   background: yellow;
   color: #858282;
 }
-.bg4{
+
+.bg4 {
   background: blue;
   color: #fff;
 }
-.footer{
+
+.footer {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items:center;
+  align-items: center;
   height: .75rem;
   margin-top: .125rem;
-  p{
+
+  p {
     font-weight: 700;
     color: #2c3e50;
     font-size: .175rem;
   }
 }
+
 .pagina {
   width: 100%;
   display: flex;
@@ -284,8 +377,8 @@ const getTable = () => {
 }
 
 .demo-form-inline {
- height: 1.375rem;
- padding: .25rem 0 0 0;
+  height: 1.375rem;
+  padding: .25rem 0 0 0;
 }
 
 .btn {
@@ -343,7 +436,7 @@ const getTable = () => {
 
   .map {
     flex: 1.155;
-    height:9.2375rem;
+    height: 9.2375rem;
     background: #fff;
     padding: .125rem;
 
@@ -452,28 +545,34 @@ const getTable = () => {
 }
 </style>
 <style scoped>
-::v-deep .el-form-item--label-right .el-form-item__label{
+::v-deep .el-form-item--label-right .el-form-item__label {
   font-size: .175rem !important;
 }
-::v-deep .el-date-editor .el-range-input{
+
+::v-deep .el-date-editor .el-range-input {
   font-size: .15rem;
 }
-::v-deep .el-date-editor .el-range-separator{
+
+::v-deep .el-date-editor .el-range-separator {
   font-size: .15rem;
 }
-::v-deep .el-date-editor .el-range__icon svg{
+
+::v-deep .el-date-editor .el-range__icon svg {
   font-size: .15rem;
 }
-::v-deep .el-select__wrapper{
-  height:.4375rem;
+
+::v-deep .el-select__wrapper {
+  height: .4375rem;
   font-size: .15rem;
 }
-::v-deep .el-input__inner{
+
+::v-deep .el-input__inner {
   font-size: .15rem;
 }
+
 ::v-deep .el-form--inline .el-form-item {
-    display: inline-flex;
-    margin-right: .4rem;
-    vertical-align: middle;
+  display: inline-flex;
+  margin-right: .4rem;
+  vertical-align: middle;
 }
 </style>

@@ -1,7 +1,7 @@
 import axios from "axios";
-import { ElMessage } from "element-plus";
-import { useRouter } from "vue-router";
-const router=new useRouter()
+// import { ElMessage } from "element-plus";
+// import { useRouter } from "vue-router";
+// const router=new useRouter()
 axios.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";
 
 const service = axios.create({
@@ -37,7 +37,7 @@ service.interceptors.response.use(
       
     //   // 外部URL重定向
     // //   window.location.href = redirectUrl
-      return Promise.reject()
+      return Promise.reject(error)
     // }
     
     // // 其他错误处理
