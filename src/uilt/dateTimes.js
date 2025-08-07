@@ -17,9 +17,7 @@ for (let i = 0; i < 14; i++) {
 
   startDate.setDate(startDate.getDate()-1); // 增加一天
   times.push(
-      `${String(startDate.getMonth() + 1).padStart(2, "0")}月${
-        String(startDate.getDate()).padStart(2, "0") + "日"
-      }`
+      `${String(startDate.getFullYear()).padStart(2, "0")}-${String(startDate.getMonth() + 1).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`
     )
 
 }

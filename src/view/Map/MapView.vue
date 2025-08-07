@@ -27,18 +27,26 @@
         <div class="mapView">
           <MapContainer />
         </div>
-        <!-- date nav -->
+        <!--底部时间选择 date nav -->
         <div class="dateNav">
           <div class="date-box">
             <ul>
-              <li class="oricle" ref="oricleRef" v-for="item in dateTime.length" :key="item">
-
-              </li>
+              <li class="oricle" ref="oricleRef" v-for="(item, index) in timesValue.sort()" :key="item"
+                @click="handelGetDate(item, index)" :tabindex=index></li>
             </ul>
           </div>
           <div class="date-box2">
-            <div v-for="item in dateTime" :key="item">{{ item }}</div>
+            <div v-for="item in timesShow.sort()" :key="item">{{ item }}</div>
           </div>
+          <el-icon>
+            <Document />
+          </el-icon>
+          <button class="left-yuan" @click="handlesetTime">
+            <i></i>
+          </button>
+          <button class="right-yuan" @click="handlegetTime" :disabled="Disabled">
+            <i></i>
+          </button>
         </div>
       </div>
 
@@ -51,7 +59,7 @@
         <div class="form">
           <el-form :inline="true" :model="formData" class="demo-form-inline">
             <el-form-item label="区间搜索:">
-              <el-date-picker v-model="getTime" format="YYYY-MM-DD" value-format="YYYY-MM-DD" type="daterange"
+              <el-date-picker v-model="changeTime" format="YYYY-MM-DD" value-format="YYYY-MM-DD" type="daterange"
                 unlink-panels range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" @change="handle"
                 class="picker" />
             </el-form-item>
@@ -110,12 +118,20 @@ import bus from '@/uilt/bus'
 
 import XLSX from '@/uilt/export'
 import dateTime from '@/uilt/dateTime';
+import dateTimes from '@/uilt/dateTimes';
+import startDate from '@/uilt/getdate';
 import { useRouter } from 'vue-router';
 
 import { onMounted, reactive, ref } from "vue";
 
+
+const changeTime = ref()
+
+const timesValue = ref(dateTimes)
+const timesShow = ref(dateTime)
+
 const router = useRouter()
-const getTime = ref();
+
 const formData = reactive({
   content: "",
   ranks: "",
@@ -125,7 +141,9 @@ const formData = reactive({
   endTime: "",
 });
 
-
+const Disabled = ref(false)
+const oricleRef = ref(null)
+const getTime = ref(startDate);//获取当前时间
 
 const currentPage = ref(null)
 const pageSize = ref(null)
@@ -176,12 +194,70 @@ onMounted(() => {
 });
 
 //获取下列时间
-const oricleRef = ref(null)
+const handelGetDate = (date) => {
+  console.log(date);
 
-// oricleRef.value.style.background='#ededde'
-// console.log(oricleRef.value.style.background='red');
+  getTime.value = date
+  getTable()
+}
+
+let flag = 1 //限制减少日期
+
+//获取前两周时间
+const handlesetTime = () => {
+  const udate = []
+  const times = []
+  const today = new Date();
+  const startDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+  startDate.setDate(startDate.getDate() - 13 * flag);
+  for (let i = 0; i < 14; i++) {
+    // 因为我们想要两周内的每一天，所以循环14次
+    startDate.setDate(startDate.getDate() - 1); // 增加一天
+    udate.push(
+      `${String(startDate.getMonth() + 1).padStart(2, "0")}月${String(startDate.getDate()).padStart(2, "0") + "日"
+      }`
+    )
+    times.push(
+      `${String(startDate.getFullYear()).padStart(2, "0")}-${String(startDate.getMonth() + 1).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`
+    )
+    timesShow.value = udate
+    timesValue.value = times
+  }
+  flag++
+}
 
 
+// 获取后两周时间
+const handlegetTime = () => {
+
+  const today = new Date();
+  const startDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  ); // 获取今天的日期
+
+  const fx = `${String(startDate.getFullYear()).padStart(2, "0")}-${String(startDate.getMonth() + 1).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`
+
+
+  if (timesValue.value[timesValue.value.length - 1] != fx) {
+         Disabled.value = false
+         console.log('shide');
+  } 
+  else {
+         Disabled.value = true
+         console.log('123')
+  }
+
+  const endDate = new Date(today.getFullYear(), today.getMonth(), 0); // 获取两周后的前一天
+  // console.log(endDate.toLocaleDateString());
+  // console.log(startDate.toLocaleDateString());
+
+}
 
 // 首页
 const handleHome = () => {
@@ -193,6 +269,7 @@ const handle = (dataTime) => {
   formData.startTime = dataTime[0]
   formData.endTime = dataTime[1]
 };
+
 // 获取表格某行数据
 const getRowData = (row) => {
   bus.emit('code', row.adcode)
@@ -230,7 +307,7 @@ const handleDaoChu = () => {
 
 const getTable = () => {
   getTableData({
-    dateTime: "2025-07-26",
+    dateTime: getTime.value,
   }).then((res) => {
 
     tableData.value = res.data.data;
@@ -245,13 +322,13 @@ const getTable = () => {
 };
 
 </script>
-
 <style lang="scss" scoped>
 .dateNav {
   width: 100%;
   height: .3375rem;
-  .date-box2{
+  position: relative;
 
+  .date-box2 {
     width: 87%;
     height: .25rem;
     margin: 0 auto;
@@ -259,9 +336,11 @@ const getTable = () => {
     justify-content: space-evenly;
     align-items: center;
   }
+
   .date-box {
     width: 90%;
     margin: 0 auto;
+
     // background: green;
     ul {
       display: flex;
@@ -275,6 +354,11 @@ const getTable = () => {
         border: 1px solid #dcdfe6;
         background: #fff;
         z-index: 33;
+
+        &:focus {
+          border: 2px solid rgb(47, 255, 210);
+          border-color: rgb(47, 255, 210);
+        }
 
         &::before {
           position: absolute;
@@ -301,20 +385,60 @@ const getTable = () => {
         }
       }
 
-      // li::before{
-      //   display: block;
-      //   content: '';
-      //   position: absolute;
-      //   top: 0px;
-      //   left: 0;
-      //   width: 60px;
-      //   height: 1px;
-      //   background: #fff;
-      //   border: 100px solid #858282;
-      // }
-
     }
 
+  }
+
+  .left-yuan {
+    position: absolute;
+    bottom: .05rem;
+    left: .25rem;
+    width: .375rem;
+    height: .375rem;
+    border-radius: 50%;
+    // background: rgb(240, 196, 196);
+    border: 1px solid #858282;
+    border-color: #858282;
+
+    i {
+      &::after {
+        content: '';
+        width: 10px;
+        height: 10px;
+        top: 9px;
+        right: 6px;
+        position: absolute;
+        border-top: 2px solid #858282;
+        border-left: 2px solid #858282;
+        transform: rotate(-45deg);
+      }
+    }
+  }
+
+  .right-yuan {
+    position: absolute;
+    bottom: .05rem;
+    right: .1875rem;
+    width: .375rem;
+    height: .375rem;
+    border-radius: 50%;
+    // background: rgb(238, 204, 204);
+    border: 1px solid #858282;
+    border-color: #858282;
+
+    i {
+      &::before {
+        content: '';
+        width: 10px;
+        height: 10px;
+        border-top: 2px solid #858282;
+        border-right: 2px solid #858282;
+        position: absolute;
+        top: 9px;
+        right: 12px;
+        transform: rotate(45deg);
+      }
+    }
   }
 }
 
