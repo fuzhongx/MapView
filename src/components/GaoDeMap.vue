@@ -12,9 +12,7 @@ import bus from '@/uilt/bus'
 let map = null
 const adCode = ref([511802]);
 const depth = ref(2);
-
-
-
+const posit = ref({})
 
 const fun = () => {
     window._AMapSecurityConfig = {
@@ -29,7 +27,7 @@ const fun = () => {
             resizeEnable: true,//监控地图容器大小
             // 设置地图容器id
             viewMode: "3D", // 是否为3D地图模式
-            zoom:4.5, // 初始化地图级别
+            zoom:5, // 初始化地图级别
             // zooms:[9],//缩放范围[3,18]
             pitch: 0,//俯仰角度，默认0，[0,83]，2D地图下无效 。
             center: [116.397428, 39.90923], // 初始化地图中心点位置
@@ -58,40 +56,47 @@ const fun = () => {
         // 图层切换控件
         const MapType = new AMap.MapType({
             position: {
-                left: "100px",
-                bottom: "200px",
+                right: "10px",
+                bottom: "110px",
             },
         })
         map.addControl(MapType)
 
         // 容器坐标，原点为左上角
-        // var px = 1407;
-        // var py = 356;
+        var px = 1407;
+        var py = 356;
 
-        // // 构造成 Pixel 对象后传入
-        // var pixel = new AMap.Pixel(px, py);
-        // var lnglat = map.containerToLngLat(pixel);  // 获得 LngLat 对象
-        // console.log(lnglat.lng, lnglat.lat);
+        // 构造成 Pixel 对象后传入
+        var pixel = new AMap.Pixel(px, py);
+        var lnglat = map.containerToLngLat(pixel);  // 获得 LngLat 对象
+        console.log(lnglat.lng, lnglat.lat);
 
 
         // // 展示信息窗体
-        // const openInfo = () => {
-        //     //构建信息窗体中显示的内容
-        //     var info = [];
-        //     info.push("<div class='input-card content-window-card'><div><img style=\"float:left;width:67px;height:16px;\" src=\" https://webapi.amap.com/images/autonavi.png \"/></div> ");
-        //     info.push("<div style=\"padding:7px 0px 0px 0px;\"><h4>高德软件</h4>");
-        //     info.push("<p class='input-item'>电话 : 010-84107000   邮编 : 100102</p>");
-        //     info.push("<p class='input-item'>地址 :北京市朝阳区望京阜荣街10号首开广场4层</p></div></div>");
+        const openInfo = () => {
+            //构建信息窗体中显示的内容
+            var info = [];
+            info.push("<div class='input-card content-window-card'><div><img style=\"float:left;width:67px;height:16px;\" src=\" https://webapi.amap.com/images/autonavi.png \"/></div> ");
+            info.push("<div style=\"padding:7px 0px 0px 0px;\"><h4>高德软件</h4>");
+            info.push("<p class='input-item'>电话 : 010-84107000   邮编 : 100102</p>");
+            info.push("<p class='input-item'>地址 :北京市朝阳区望京阜荣街10号首开广场4层</p></div></div>");
 
-        //     const infoWindow = new AMap.InfoWindow({
-        //         content: info.join(""), //使用默认信息窗体框样式，显示信息内容
-        //         offset: new AMap.Pixel(0, -30)
-        //     });
+            const infoWindow = new AMap.InfoWindow({
+                content: info.join(""), //使用默认信息窗体框样式，显示信息内容
+                offset: new AMap.Pixel(0, -30)
+            });
 
-        //     infoWindow.open(map, new AMap.LngLat(lnglat.lng, lnglat.lat));
+            bus.on('position', pos => {
+                posit.value = pos
+                // fun()
+            })
 
-        // }
-        // openInfo()
+            console.log(posit.value, '定位');
+
+            infoWindow.open(map, new AMap.LngLat(125, 31));
+
+        }
+        openInfo()
 
 
         //创建省份图层
@@ -132,9 +137,9 @@ const fun = () => {
             console.log(item, 'color');
 
         })
-     
+
         var getColorByAdcode = function (adcode) {
-           
+
             if (!colors[adcode]) {
                 switch (rank.value) {
                     case '黄色预警': colors[adCode, rank.value] = 'agb(255, 255, 0)'; break

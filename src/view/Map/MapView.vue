@@ -201,7 +201,8 @@ const handelGetDate = (date) => {
   getTable()
 }
 
-let flag = 1 //限制减少日期
+let flag = 1 //限制减少增加日期
+// let flagx=1 //限制增加日期
 
 //获取前两周时间
 const handlesetTime = () => {
@@ -233,7 +234,6 @@ const handlesetTime = () => {
 
 // 获取后两周时间
 const handlegetTime = () => {
-
   const today = new Date();
   const startDate = new Date(
     today.getFullYear(),
@@ -241,17 +241,19 @@ const handlegetTime = () => {
     today.getDate()
   ); // 获取今天的日期
 
-  const fx = `${String(startDate.getFullYear()).padStart(2, "0")}-${String(startDate.getMonth() + 1).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`
 
 
-  if (timesValue.value[timesValue.value.length - 1] != fx) {
-         Disabled.value = false
-         console.log('shide');
-  } 
-  else {
-         Disabled.value = true
-         console.log('123')
-  }
+  // const fx = `${String(startDate.getFullYear()).padStart(2, "0")}-${String(startDate.getMonth() + 1).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}`
+
+
+  // if (timesValue.value[timesValue.value.length - 1] != fx) {
+  //        Disabled.value = false
+  //        console.log('shide');
+  // } 
+  // else {
+  //        Disabled.value = true
+  //        console.log('123')
+  // }
 
   const endDate = new Date(today.getFullYear(), today.getMonth(), 0); // 获取两周后的前一天
   // console.log(endDate.toLocaleDateString());
@@ -271,12 +273,17 @@ const handle = (dataTime) => {
 };
 
 // 获取表格某行数据
-const getRowData = (row) => {
+const getRowData = (row, column, event) => {
   bus.emit('code', row.adcode)
   bus.emit('color', row.rank)
   console.log(row);
-
-
+  console.log(column);
+  console.log(event);
+  const params={
+    x:116, 
+    y:39
+  }
+  bus.emit('position',params)
 }
 
 //分页

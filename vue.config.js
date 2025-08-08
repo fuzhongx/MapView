@@ -16,7 +16,7 @@ module.exports = defineConfig({
       },
     },
   },
-
+ 
   configureWebpack: (config) => {
     config.plugins.push(
       AutoImport({
@@ -29,6 +29,7 @@ module.exports = defineConfig({
       })
     );
   },
+
   devServer: {
     client: {
       overlay: false,
